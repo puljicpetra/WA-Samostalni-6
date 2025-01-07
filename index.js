@@ -1,4 +1,5 @@
 const express = require('express');
+const moviesRoutes = require('./routes/movies');
 const app = express();
 const PORT = 3000;
 
@@ -7,30 +8,6 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send('movie-server');
 });
-
-let movies = [
-    {
-      id: 4222334,
-      title: "The Shawshank Redemption",
-      year: 1994,
-      genre: "Drama",
-      director: "Frank Darabont",
-    },
-    {
-      id: 5211223,
-      title: "The Godfather",
-      year: 1972,
-      genre: "Crime",
-      director: "Francis Ford Coppola",
-    },
-    {
-      id: 4123123,
-      title: "The Dark Knight",
-      year: 2008,
-      genre: "Action",
-      director: "Christopher Nolan",
-    },
-];
 
 let actors = [
     {
@@ -53,6 +30,8 @@ let actors = [
     },
 ];
 
+app.use('/movies', moviesRoutes);
+  
 app.listen(PORT, error => {
     if (error) {
         console.error(`Greška prilikom pokretanja poslužitelja: ${error.message}`);
