@@ -77,16 +77,20 @@ router.get(
     param('id').isInt().withMessage('Id mora biti integer')
   ], 
   
-  pretrazivanjeMoviesPoId, 
-  
-  (req, res) => {
+  (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ errors: errors.array() });
     }
+    next();
+  },
 
-    return res.status(200).json(req.movie)
-});
+  pretrazivanjeMoviesPoId, 
+
+  (req, res) => {
+    return res.status(200).json(req.movie);
+  }
+);
 
 router.post(
   '/', 
