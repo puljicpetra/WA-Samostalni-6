@@ -24,18 +24,18 @@ export let actors = [
     },
 ];
 
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
     if (actors) {
         return res.status(200).json(actors);
     }
     return res.status(404).json({ message: 'Nema glumaca' })
 });
 
-router.get('/:id', pretrazivanjeActorsPoId, async (req, res) => {
+router.get('/:id', pretrazivanjeActorsPoId, (req, res) => {
     return res.status(200).json(req.actor);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
     const { name, birthYear, movies } = req.body;
     if (!name || !birthYear || !Array.isArray(movies) || movies.length === 0) {
         return res.status(400).json({ message: "Nedostaju podaci" });
@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
     res.status(201).json({ message: "Uspjesno dodano", actor: noviActor });
 });
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', (req, res) => {
     const id_route_param = parseInt(req.params.id);
     const actor = actors.find(actor => actor.id === id_route_param);
 

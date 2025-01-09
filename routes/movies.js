@@ -1,6 +1,6 @@
 import express from 'express';
 import { pretrazivanjeMoviesPoId } from '../middleware/movies.js';
-import { body, validationResult } from 'express-validator';
+import { query, param, body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
@@ -28,25 +28,74 @@ export let movies = [
   },
 ];
 
-router.get('/', (req, res) => {
-  if (movies) {
-    return res.status(200).json(movies);
-  }
-  return res.status(404).json({ message: 'Nema filma' })
-});
+router.get(
+  '/', 
+  
+  [
+    query('min_year')
+      .optional()
+      .isInt().withMessage('Min_year treba biti integer'),
+    query('max_year')
+      .optional()
+      .isInt().withMessage('Max_year treba biti integer'),
+    query('min_year').custom((value, { req }) => {
+      if (value && req.query.max_year && parseInt(value) >= parseInt(req.query.max_year)) {
+        throw new Error('Min_year treba biti manji od max_year');
+      }
+      return true;
+    }),
+  ],
+  
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-router.get('/:id', pretrazivanjeMoviesPoId, (req, res) => {
-  return res.status(200).json(req.movie);
+    const { min_year, max_year } = req.query;
+    let filtriraniMovies = movies;
+
+    if (min_year) {
+      filtriraniMovies = filtriraniMovies.filter(movie => movie.year >= parseInt(min_year));
+    }
+    if (max_year) {
+      filtriraniMovies = filtriraniMovies.filter(movie => movie.year <= parseInt(max_year));
+    }
+
+    if (filtriraniMovies.length === 0) {
+      return res.status(404).json({ message: 'Ne postoji film u ovom rasponu godina' });
+    }
+
+    return res.status(200).json(filtriraniMovies);
+  }
+);
+
+router.get(
+  '/:id', 
+  
+  [
+    param('id').isInt().withMessage('Id mora biti integer')
+  ], 
+  
+  pretrazivanjeMoviesPoId, 
+  
+  (req, res) => {
+    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+    return res.status(200).json(req.movie)
 });
 
 router.post(
   '/', 
 
   [
-    body('title').isString().withMessage('Title treba biti string'),
-    body('year').isInt().withMessage('Year treba biti integer'),
-    body('genre').isString().withMessage('Genre treba biti string'),
-    body('director').isString().withMessage('Director treba biti string'),
+    body('title').notEmpty().withMessage('Title je obavezan'),
+    body('year').notEmpty().withMessage('Year je obavezan'),
+    body('genre').notEmpty().withMessage('Genre je obavezan'),
+    body('director').notEmpty().withMessage('Director je obavezan'),
   ],
 
   (req, res) => {
@@ -56,9 +105,6 @@ router.post(
     }
 
     const { title, year, genre, director } = req.body;
-    if (!title || !year || !genre || !director) {
-      return res.status(400).json({ message: "Nedostaju podaci" });
-    }
 
     const noviMovie = {
       id: Date.now(),
@@ -70,16 +116,17 @@ router.post(
 
     movies.push(noviMovie);
     res.status(201).json({ message: "Uspjesno dodano", movie: noviMovie });
-});
+  }
+);
 
 router.patch(
   '/:id', 
 
   [
-    body('title').optional().isString().withMessage('Naslov mora biti string.'),
-    body('year').optional().isInt().withMessage('Godina mora biti integer.'),
-    body('genre').optional().isString().withMessage('Žanr mora biti string.'),
-    body('director').optional().isString().withMessage('Redatelj mora biti string.'),
+    body('title').optional().notEmpty().withMessage('Title ne smije biti prazan'),
+    body('year').optional().notEmpty().withMessage('Year ne smije biti prazan'),
+    body('genre').optional().notEmpty().withMessage('Genre ne smije biti prazan'),
+    body('director').optional().notEmpty().withMessage('Director ne smije biti prazan'),
   ],
   
   (req, res) => {
@@ -103,6 +150,7 @@ router.patch(
 
     console.log(movies);
     return res.status(200).json({ message: 'Uspjesno azurirano', movie });
-});
+  }
+);
 
 export default router;
