@@ -84,4 +84,5 @@ Instalirajte `express-validator` biblioteku te implementirajte sljedeće validac
 - `GET /actors` - dodajte route parametar `name` te provjerite je li tipa string. Uklonite prazne znakove s početka i kraja stringa koristeći odgovarajući *middleware*.
 
 Obradite greške za svaku rutu slanjem objekta s greškama koje generira `express-validator` biblioteka.
+
 Osigurajte sve rute od reflektiranog XSS napada koristeći odgovarajući *middleware*.
