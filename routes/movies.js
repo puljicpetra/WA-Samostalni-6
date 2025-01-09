@@ -49,10 +49,10 @@ router.post('/', async (req, res) => {
 
     const noviMovie = {
       id: Date.now(),
-      title: req.body.title,
-      year: req.body.year,
-      genre: req.body.genre,
-      director: req.body.director,
+      title,
+      year,
+      genre,
+      director,
     };
 
     movies.push(noviMovie);
