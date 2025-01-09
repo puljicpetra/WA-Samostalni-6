@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 let movies = [
@@ -77,4 +77,4 @@ router.patch('/:id', async (req, res) => {
     return res.status(200).json({ message: 'Uspjesno azurirano', movie });
 });
 
-module.exports = router;
+export default router;
