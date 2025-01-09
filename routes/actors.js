@@ -1,7 +1,9 @@
 import express from 'express';
+import { pretrazivanjeActorsPoId } from '../middleware/actors.js';
+
 const router = express.Router();
 
-let actors = [
+export let actors = [
     {
       id: 123,
       name: "Morgan Freeman",
@@ -29,13 +31,8 @@ router.get('/', async (req, res) => {
     return res.status(404).json({ message: 'Nema glumaca' })
 });
 
-router.get('/:id', async (req, res) => {
-    const id_route_param = parseInt(req.params.id);
-    const actor = actors.find(actor => actor.id === id_route_param);
-    if (actor) {
-        return res.status(200).json(actor);
-    }
-    return res.status(404).json({ message: 'Glumac nije pronadjen' })
+router.get('/:id', pretrazivanjeActorsPoId, async (req, res) => {
+    return res.status(200).json(req.actor);
 });
 
 router.post('/', async (req, res) => {
