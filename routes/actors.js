@@ -1,5 +1,6 @@
 import express from 'express';
 import { pretrazivanjeActorsPoId } from '../middleware/actors.js';
+import { query, param, body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
@@ -24,49 +25,116 @@ export let actors = [
     },
 ];
 
-router.get('/', (req, res) => {
-    if (actors) {
-        return res.status(200).json(actors);
+router.get(
+    '/', 
+    
+    query('name')
+        .optional()
+        .isString().withMessage('Name treba biti string')
+        .trim()
+        .notEmpty().withMessage('Name ne moze biti prazan')
+        .matches(/^[A-Za-z\s]+$/).withMessage('Name moze sadrzavati samo slova i razmake'),
+
+    (req, res) => {
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { name } = req.query;
+        let filtriraniActors = actors;
+
+        if (name) {
+            filtriraniActors = actors.filter(actor => actor.name.toLowerCase().includes(name.toLowerCase()));
+        }
+
+        if (filtriraniActors.length > 0) {
+            return res.status(200).json(filtriraniActors);
+        }
+
+        return res.status(404).json({ message: 'Nema glumaca' })
     }
-    return res.status(404).json({ message: 'Nema glumaca' })
-});
+);
 
-router.get('/:id', pretrazivanjeActorsPoId, (req, res) => {
-    return res.status(200).json(req.actor);
-});
+router.get(
+    '/:id', 
+    
+    [
+        param('id').isInt().withMessage('Id mora biti integer')
+    ],  
+    
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    },
 
-router.post('/', (req, res) => {
-    const { name, birthYear, movies } = req.body;
-    if (!name || !birthYear || !Array.isArray(movies) || movies.length === 0) {
-        return res.status(400).json({ message: "Nedostaju podaci" });
-      }
+    pretrazivanjeActorsPoId,
 
-    const noviActor = {
-        id: Date.now(),
-        name,
-        birthYear,
-        movies,
-    };
-
-    actors.push(noviActor);
-    res.status(201).json({ message: "Uspjesno dodano", actor: noviActor });
-});
-
-router.patch('/:id', (req, res) => {
-    const id_route_param = parseInt(req.params.id);
-    const actor = actors.find(actor => actor.id === id_route_param);
-
-    if (!actor) {
-        return res.status(404).json({ message: 'Nije pronadjen' });
+    (req, res) => {
+        return res.status(200).json(req.actor);
     }
+);
 
-    const { name, birthYear, movies } = req.body;
-    if (name) actor.name = name;
-    if (birthYear) actor.birthYear = birthYear;
-    if (movies) actor.movies = movies;
+router.post(
+    '/', 
+    
+    [
+        body('name').notEmpty().withMessage('Name je obavezan'),
+        body('birthYear').notEmpty().withMessage('BirthYear je obavezan'),
+    ],
 
-    console.log(actors);
-    return res.status(200).json({ message: 'Uspjesno azurirano', actor });
-});
+    (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { name, birthYear, movies } = req.body;
+        const noviActor = {
+            id: Date.now(),
+            name,
+            birthYear,
+            movies,
+        };
+
+        actors.push(noviActor);
+        res.status(201).json({ message: "Uspjesno dodano", actor: noviActor });
+    }
+);
+
+router.patch(
+    '/:id', 
+    
+    [
+        body('name').optional().notEmpty().withMessage('Name ne smije biti prazan'),
+        body('birthYear').optional().notEmpty().withMessage('BirthYear ne smije biti prazan'),
+    ],
+    
+    (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const id_route_param = parseInt(req.params.id);
+        const actor = actors.find(actor => actor.id === id_route_param);
+
+        if (!actor) {
+            return res.status(404).json({ message: 'Nije pronadjen' });
+        }
+
+        const { name, birthYear, movies } = req.body;
+        if (name) actor.name = name;
+        if (birthYear) actor.birthYear = birthYear;
+        if (movies) actor.movies = movies;
+
+        console.log(actors);
+        return res.status(200).json({ message: 'Uspjesno azurirano', actor });
+    }
+);
 
 export default router;
