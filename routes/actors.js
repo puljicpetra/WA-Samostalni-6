@@ -30,9 +30,8 @@ router.get(
     
     query('name')
         .optional()
-        .isString().withMessage('Name treba biti string')
         .trim()
-        .notEmpty().withMessage('Name ne moze biti prazan')
+        .escape()
         .matches(/^[A-Za-z\s]+$/).withMessage('Name moze sadrzavati samo slova i razmake'),
 
     (req, res) => {
@@ -61,7 +60,8 @@ router.get(
     '/:id', 
     
     [
-        param('id').isInt().withMessage('Id mora biti integer')
+        param('id')
+            .isInt().withMessage('Id mora biti integer')
     ],  
     
     (req, res, next) => {
@@ -83,8 +83,16 @@ router.post(
     '/', 
     
     [
-        body('name').notEmpty().withMessage('Name je obavezan'),
-        body('birthYear').notEmpty().withMessage('BirthYear je obavezan'),
+        body('name')
+            .notEmpty().withMessage('Name je obavezan')
+            .trim()
+            .escape()
+            .matches(/^[\p{L}\s]+$/u).withMessage('Name može sadrzavati samo slova i razmake'),
+        body('birthYear')
+            .notEmpty().withMessage('BirthYear je obavezan')
+            .trim()
+            .escape()
+            .isInt(),
     ],
 
     (req, res) => {
@@ -110,8 +118,18 @@ router.patch(
     '/:id', 
     
     [
-        body('name').optional().notEmpty().withMessage('Name ne smije biti prazan'),
-        body('birthYear').optional().notEmpty().withMessage('BirthYear ne smije biti prazan'),
+        body('name')
+            .optional()
+            .notEmpty().withMessage('Name ne smije biti prazan')
+            .trim()
+            .escape()
+            .matches(/^[\p{L}\s]+$/u).withMessage('Name može sadrzavati samo slova i razmake'),
+        body('birthYear')
+            .optional()
+            .notEmpty().withMessage('BirthYear ne smije biti prazan')
+            .trim()
+            .escape()
+            .isInt(),
     ],
     
     (req, res) => {

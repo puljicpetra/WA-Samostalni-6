@@ -34,9 +34,11 @@ router.get(
   [
     query('min_year')
       .optional()
+      .trim()
       .isInt().withMessage('Min_year treba biti integer'),
     query('max_year')
       .optional()
+      .trim()
       .isInt().withMessage('Max_year treba biti integer'),
     query('min_year').custom((value, { req }) => {
       if (value && req.query.max_year && parseInt(value) >= parseInt(req.query.max_year)) {
@@ -74,7 +76,8 @@ router.get(
   '/:id', 
   
   [
-    param('id').isInt().withMessage('Id mora biti integer')
+    param('id')
+      .isInt().withMessage('Id mora biti integer')
   ], 
   
   (req, res, next) => {
@@ -96,10 +99,26 @@ router.post(
   '/', 
 
   [
-    body('title').notEmpty().withMessage('Title je obavezan'),
-    body('year').notEmpty().withMessage('Year je obavezan'),
-    body('genre').notEmpty().withMessage('Genre je obavezan'),
-    body('director').notEmpty().withMessage('Director je obavezan'),
+    body('title')
+      .notEmpty().withMessage('Title je obavezan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s]+$/u),
+    body('year')
+      .notEmpty().withMessage('Year je obavezan')
+      .trim()
+      .escape()
+      .isInt(),
+    body('genre')
+      .notEmpty().withMessage('Genre je obavezan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s/]+$/u),
+    body('director')
+      .notEmpty().withMessage('Director je obavezan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s]+$/u),
   ],
 
   (req, res) => {
@@ -127,10 +146,30 @@ router.patch(
   '/:id', 
 
   [
-    body('title').optional().notEmpty().withMessage('Title ne smije biti prazan'),
-    body('year').optional().notEmpty().withMessage('Year ne smije biti prazan'),
-    body('genre').optional().notEmpty().withMessage('Genre ne smije biti prazan'),
-    body('director').optional().notEmpty().withMessage('Director ne smije biti prazan'),
+    body('title')
+      .optional()
+      .notEmpty().withMessage('Title ne smije biti prazan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s/]+$/u),
+    body('year')
+      .optional()
+      .notEmpty().withMessage('Year ne smije biti prazan')
+      .trim()
+      .escape()
+      .isInt(),
+    body('genre')
+      .optional()
+      .notEmpty().withMessage('Genre ne smije biti prazan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s/]+$/u),
+    body('director')
+      .optional()
+      .notEmpty().withMessage('Director ne smije biti prazan')
+      .trim()
+      .escape()
+      .matches(/^[\p{L}\s/]+$/u),
   ],
   
   (req, res) => {
